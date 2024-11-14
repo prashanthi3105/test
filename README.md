@@ -1,4 +1,10 @@
 
+The desired state is to have a dynamic, AI/ML-powered system that continuously analyzes customer data to predict future financial health and categorize risk levels. It should enable proactive underwriting by forecasting whether a customer's financial situation will improve, decline, or remain stable. This will lead to more accurate risk assessments and optimized lending decisions.
+
+
+
+
+
 +----------------------------+         +-----------------------------------------------+        +-------------------------+
 |        Customer Data        |         |   Forecasting & Risk Assessment              |        |    Outcome & Decision   |
 |----------------------------|         |-----------------------------------------------|        |-------------------------|
