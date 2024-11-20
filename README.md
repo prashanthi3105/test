@@ -1,4 +1,36 @@
+Here’s a refined **story description** and **acceptance criteria** for your Agile sprint:  
 
+---
+
+### **Story Title**  
+Optimize CI/CD Pipeline by Scheduling Code Scans to Reduce Build Time  
+
+---
+
+### **Story Description**  
+Currently, the Checkmarx and SonarQube scans in the CI/CD Jenkins build process are taking up to 3 hours per build. This impacts productivity and delays merging changes between branches (fork to release and release to develop). To address this, we propose reducing the frequency of these scans by scheduling them to run twice per sprint, instead of on every build. This will improve pipeline efficiency while ensuring code quality remains intact through periodic scans.
+
+---
+
+### **Acceptance Criteria**  
+1. **Scanning Configuration**:  
+   - Modify the CI/CD pipeline to disable Checkmarx and SonarQube scans on every build.  
+   - Set up scheduled scans to run twice per sprint.  
+
+2. **Code Quality Assurance**:  
+   - Ensure scheduled scans generate comprehensive reports accessible to the team.  
+   - Validate that no critical vulnerabilities or major issues are missed during the transition.  
+
+3. **Merge Efficiency**:  
+   - Confirm that the new setup significantly reduces build times for merging changes between branches.  
+
+4. **Testing and Monitoring**:  
+   - Test the pipeline with the updated scanning schedule and ensure stability.  
+   - Document the results and gather feedback to verify the effectiveness of the new approach.  
+
+---
+
+Let me know if you'd like further adjustments!
 
 Got it! You’re looking for a **circular diagram** style (like the one in your sample) for the **Credit Risk Recommendation Engine**, with components arranged around a central core, and interconnected in a circular flow. This type of design is great for illustrating systems where there is a continuous flow or feedback loop, like in a credit risk assessment engine.
 
