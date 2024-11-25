@@ -1,0 +1,92 @@
+To modify your shell script for a successful execution and generate a summary of created and copied files, you can implement logging and summary generation at the end of the script. Here's a revised version of your script with the required changes:
+
+```bash
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <SID>"
+    exit 1
+fi
+
+# Variables
+SID=$1
+HOSTNAME=$(hostname)
+TIMESTAMP=$(date '+%Y%m%d_%H%M%S')
+TAR_DIR="/sap_mig/$SID/$HOSTNAME"
+LOG_FILE="$TAR_DIR/sap_mig_$SID/log_$HOSTNAME_$TIMESTAMP.log"
+ERROR_LOG="$TAR_DIR/sap_mig_$SID/error_log_$HOSTNAME_$TIMESTAMP.log"
+SUMMARY_FILE="$TAR_DIR/summary_$HOSTNAME_$TIMESTAMP.log"
+
+mkdir -p "$TAR_DIR"
+
+# Function to log progress
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO: $1" | tee -a "$LOG_FILE"
+}
+
+# Function to log errors
+log_error() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR: $1" | tee -a "$LOG_FILE" "$ERROR_LOG"
+}
+
+# Function to execute a command and handle its success or failure
+execute_with_log() {
+    local description="$1"
+    local command="$2"
+
+    log_message "START: $description"
+    eval "$command"
+    if [ $? -eq 0 ]; then
+        log_message "SUCCESS: $description" | tee -a "$SUMMARY_FILE"
+    else
+        log_error "FAILURE: $description"
+    fi
+}
+
+log_message "Script started for SID: $SID."
+
+# Create folder structures
+execute_with_log "Create directory structure at $TAR_DIR" "mkdir -p $TAR_DIR/TAR $TAR_DIR/etc"
+
+# TAR commands
+log_message "Starting tarball operations."
+
+execute_with_log "Creating tarball for /usr/sap/$SID" "nohup tar -czvf $TAR_DIR/TAR/$SID.tar.gz /usr/sap/$SID &>> $LOG_FILE"
+
+# Copy files
+execute_with_log "Copying /etc/group to $TAR_DIR/etc" "cp /etc/group $TAR_DIR/etc"
+execute_with_log "Copying /etc/passwd to $TAR_DIR/etc" "cp /etc/passwd $TAR_DIR/etc"
+
+log_message "TAR operations completed."
+
+# Print information about jobs still running
+log_message "The following jobs are still running in the background. Please check manually:"
+jobs -l | tee -a "$LOG_FILE"
+
+log_message "Script execution completed successfully. Errors, if any, are logged in $ERROR_LOG."
+log_message "Summary of created and copied files is available in $SUMMARY_FILE."
+```
+
+### Key Changes
+1. **Summary File**:
+   - Added `SUMMARY_FILE` to log successful operations.
+2. **Improved Logging**:
+   - Progress and error messages include timestamps.
+   - Successful commands log details in both the main log and the summary file.
+3. **Background Job Monitoring**:
+   - Added information about background jobs still running.
+4. **Readability**:
+   - Clear messages for script progress and completion.
+
+### Steps to Use:
+1. Save the modified script as `your_script_name.sh`.
+2. Execute it with the required `SID` argument:  
+   ```bash
+   ./your_script_name.sh <SID>
+   ```
+3. Check:
+   - **`log_<hostname>_<timestamp>.log`** for detailed logs.
+   - **`error_log_<hostname>_<timestamp>.log`** for errors.
+   - **`summary_<hostname>_<timestamp>.log`** for a concise summary of successful operations.
+
+This will ensure you have a detailed view of the operations and a quick summary of the completed actions.
