@@ -1,3 +1,105 @@
+
+
+#!/bin/bash
+
+# Check if SID is provided as an argument
+if [ -z "$1" ]; then
+    echo "Usage: $0 <SID>"
+    exit 1
+fi
+
+# Variables
+SID="$1"
+HOSTNAME=$(hostname)                     # Dynamically retrieve the server hostname
+TIMESTAMP=$(date "+%Y%m%d_%H%M%S")       # Current date and time
+TAR_DIR="/sap_mig/$SID/$HOSTNAME"
+LOG_FILE="$TAR_DIR/sap_mig_$SID/log_$TIMESTAMP.log"
+ERROR_LOG="$TAR_DIR/sap_mig_$SID/error_log_$TIMESTAMP.log"
+TAR_COUNT=0                              # Count of successful tar files created
+COPY_COUNT=0                             # Count of successful files or directories copied
+SUCCESS_COUNT=0                          # Total success count
+FAILURE_COUNT=0                          # Total failure count
+
+mkdir -p "$TAR_DIR"
+
+# Function to log progress
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" | tee -a "$LOG_FILE"
+}
+
+# Function to log errors
+log_error() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): ERROR: $1" | tee -a "$LOG_FILE" "$ERROR_LOG"
+}
+
+# Function to execute a command and handle its success or failure
+execute_with_log() {
+    local description="$1"
+    local command="$2"
+
+    log_message "START: $description"
+    eval "$command"
+    if [ $? -eq 0 ]; then
+        log_message "SUCCESS: $description"
+        ((SUCCESS_COUNT++))
+        # Increment counters based on the description
+        if [[ "$description" == *"tarball"* ]]; then
+            log_message "File created successfully: $description"
+            ((TAR_COUNT++))
+        elif [[ "$description" == *"Copying"* ]]; then
+            log_message "File copied successfully: $description"
+            ((COPY_COUNT++))
+        fi
+    else
+        log_error "FAILURE: $description"
+        ((FAILURE_COUNT++))
+    fi
+}
+
+# Log start
+log_message "Script started for SID: $SID."
+
+# Create the folder structure
+execute_with_log "Create TAR directory structure at $TAR_DIR/TAR" "mkdir -p $TAR_DIR/TAR"
+execute_with_log "Create etc directory structure at $TAR_DIR/etc" "mkdir -p $TAR_DIR/etc"
+
+# TAR commands
+log_message "Starting tarball operations"
+execute_with_log "Creating tarball for /usr/sap/SID" "nohup tar -czvf $TAR_DIR/TAR/usr_sap_SID.tar.gz /usr/sap/SID &>> $LOG_FILE &"
+# Add other tar commands here as in your script
+
+# Copy commands
+execute_with_log "Copying /etc/group to $TAR_DIR/etc" "cp /etc/group $TAR_DIR/etc"
+execute_with_log "Copying /etc/passwd to $TAR_DIR/etc" "cp /etc/passwd $TAR_DIR/etc"
+# Add other copy commands here as in your script
+
+# Log summary
+log_message "TAR operations completed."
+log_message "Summary:"
+log_message "Total tar files created: $TAR_COUNT"
+log_message "Total files or directories copied: $COPY_COUNT"
+log_message "Total successful commands: $SUCCESS_COUNT"
+log_message "Total failed commands: $FAILURE_COUNT"
+
+# Print information about running jobs
+log_message "The following jobs may still be running in the background. Please check manually:"
+jobs -l | tee -a "$LOG_FILE"
+
+# Final success or failure message
+if [ $FAILURE_COUNT -eq 0 ]; then
+    log_message "Script execution completed successfully. Job finished successfully."
+else
+    log_message "Script execution completed with errors. Job finished with issues. Check $ERROR_LOG for details."
+fi
+
+
+
+
+
+
+
++=========
+
 To modify your shell script for a successful execution and generate a summary of created and copied files, you can implement logging and summary generation at the end of the script. Here's a revised version of your script with the required changes:
 
 ```bash
