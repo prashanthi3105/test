@@ -1,5 +1,156 @@
 
 
+### Application Changes for Parent RC and Sub RC
+
+---
+
+#### **1. User Interface (UI) Updates**
+- **Parent RC Dropdown:**
+  - Load the existing list of **Parent RCs** from the database.
+  - The dropdown should be searchable for ease of use, especially if the list is long.
+
+- **Sub RC Dropdown:**
+  - Dynamically populate based on the **Parent RC** selection.
+  - Ensure the dropdown is disabled until a **Parent RC** is selected.
+  - Fetch data from the **Sub RC Lookup Table** (`T_BQR_Sub_Reason_Code_Def`) using the selected **Parent RC**.
+  - Display the **Sub_RC_Desc** for user clarity.
+
+- **Error Handling:**
+  - If no **Sub RC** exists for a selected **Parent RC**, show a message like "No Sub Reason Codes available for this selection."
+  - Add client-side and server-side validation to ensure **Sub RC** is mandatory if required for the selected **Parent RC**.
+
+---
+
+#### **2. Business Logic Changes**
+- **Load Lookups:**
+  - Fetch both **Parent RCs** and their corresponding **Sub RCs** from the database.
+  - Cache these lookups in memory to optimize performance.
+
+- **Validation Rules:**
+  - Ensure the selected **Parent RC** and **Sub RC** are valid combinations.
+  - Prevent saving invalid or non-existent combinations into the database.
+
+- **Backward Compatibility:**
+  - For existing records without a **Sub RC**, leave the **Sub RC** dropdown empty or show "Not Applicable."
+
+---
+
+#### **3. Backend Service Updates**
+- **APIs for Fetching Data:**
+  - Create or update APIs to return:
+    - All **Parent RCs**.
+    - **Sub RCs** filtered by the selected **Parent RC**.
+
+- **Save/Update Logic:**
+  - Update backend logic to handle the new **Sub RC** field.
+  - Validate and save both **Parent RC** and **Sub RC** into the `T_BQR_Customer_Calc` table.
+
+- **Soft Delete Handling:**
+  - Filter out **Sub RCs** where `Is_Deleted = TRUE` in API responses.
+  - Ensure previously soft-deleted **Sub RCs** are not selectable in the dropdown.
+
+---
+
+#### **4. Trigger and Procedure Updates**
+- **Trigger for `T_BQR_Customer_Calc`:**
+  - Automatically validate and populate the **Sub RC** field during insert or update.
+  - Raise errors if invalid combinations of **Parent RC** and **Sub RC** are encountered.
+
+- **Procedure for Lookups:**
+  - Create a procedure to fetch active (non-deleted) **Parent RCs** and **Sub RCs**.
+
+---
+
+#### **5. Testing**
+- **Unit Tests:**
+  - Verify that valid **Parent RC** and **Sub RC** combinations are saved correctly.
+  - Ensure invalid combinations are rejected.
+
+- **UI Tests:**
+  - Test dropdown behavior for both **Parent RC** and **Sub RC**.
+  - Validate dependent dropdown logic (enabling/disabling).
+
+- **Regression Tests:**
+  - Test old records to ensure they are unaffected.
+  - Verify soft-deleted **Sub RCs** do not appear in dropdowns.
+
+---
+
+### Database Changes
+
+---
+
+#### **1. Create Table: `T_BQR_Sub_Reason_Code_Def`**
+```sql
+CREATE TABLE T_BQR_Sub_Reason_Code_Def (
+    Calc_Code INT PRIMARY KEY AUTO_INCREMENT,
+    Parent_RC INT NOT NULL,
+    Sub_RC INT NOT NULL,
+    Sub_RC_Desc VARCHAR(255),
+    Display_Order INT,
+    Parent_Lookup_Code VARCHAR(50),
+    Sub_Lookup_Code VARCHAR(50),
+    Created_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Created_By VARCHAR(50),
+    Updated_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    Updated_By VARCHAR(50),
+    Is_Deleted BOOLEAN DEFAULT FALSE,
+    UNIQUE (Parent_RC, Sub_RC)
+);
+```
+
+#### **2. Modify Table: `T_BQR_Customer_Calc`**
+```sql
+ALTER TABLE T_BQR_Customer_Calc
+ADD COLUMN Sub_RC INT DEFAULT NULL;
+```
+
+#### **3. Triggers**
+- **Trigger for `T_BQR_Customer_Calc`:**
+  ```sql
+  CREATE TRIGGER trg_validate_sub_rc
+  BEFORE INSERT OR UPDATE ON T_BQR_Customer_Calc
+  FOR EACH ROW
+  BEGIN
+    IF (NEW.Sub_RC IS NOT NULL) THEN
+      DECLARE valid_count INT;
+      SELECT COUNT(*) INTO valid_count
+      FROM T_BQR_Sub_Reason_Code_Def
+      WHERE Parent_RC = NEW.Parent_RC
+        AND Sub_RC = NEW.Sub_RC
+        AND Is_Deleted = FALSE;
+
+      IF valid_count = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid Sub Reason Code for the selected Parent Reason Code';
+      END IF;
+    END IF;
+  END;
+  ```
+
+- **Trigger for `T_BQR_Sub_Reason_Code_Def` (Soft Delete):**
+  ```sql
+  CREATE TRIGGER trg_soft_delete_sub_rc
+  BEFORE DELETE ON T_BQR_Sub_Reason_Code_Def
+  FOR EACH ROW
+  BEGIN
+    SET OLD.Is_Deleted = TRUE;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Soft delete is enforced. Use Is_Deleted flag instead.';
+  END;
+  ```
+
+#### **4. Views**
+Update any views fetching data from `T_BQR_Customer_Calc` to include the new `Sub_RC` column.
+
+---
+
+Let me know if you need any additional details or SQL examples!
+
+
+
+
+
+#####
+
 Here’s a streamlined plan to implement the proposed solution for integrating a **Sub-Reason Code (SubRC)** feature in your application:
 
 ---
