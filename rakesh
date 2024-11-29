@@ -1,5 +1,168 @@
 
+Here is the complete documentation based on your notes and the additional enhancements for clarity and structure:
 
+---
+
+# **CBAC to AIMS Admin Functionality Enhancements**  
+
+### **1. Introduction**  
+
+The migration from the CBAC system to the AIMS system has been successfully completed in Phase 1. In Phase 2, we are focusing on enhancing admin functionalities within the ART system. These enhancements enable authorized administrators to manage Authorization Groups (AGs) and Lines of Business (LoBs) effectively, ensuring alignment with business processes and system integrity.
+
+---
+
+### **2. Objectives**  
+
+- Provide admins the ability to **move** AG groups between LoBs.  
+- Allow creation of **new AG LoBs** by pulling data from the AIMS system and validating it against the ART database.  
+- Enable removal of AG LoBs through soft deletion, ensuring traceability and compliance.  
+- Ensure all admin operations are logged for auditing and security purposes.
+
+---
+
+### **3. Functionalities**  
+
+#### **3.1 Move AG Groups Between LoBs**  
+
+Admins can move AG groups from one LoB to another within the ART system.  
+
+**Steps**:  
+1. Select the AG group to be moved from the dropdown populated with data from ART DB.  
+2. Select the target LoB from the dropdown.  
+3. Validate the action:  
+   - Ensure the target LoB exists in ART DB.  
+   - Check that there are no conflicts with dependencies.  
+4. Submit the operation.  
+5. System updates the database, logging the action for audit purposes.  
+
+**Validations**:  
+- Ensure the selected AG group exists in ART DB.  
+- Prevent moving AG groups to non-existent or duplicate LoBs.  
+- Prompt admin if dependencies are not resolved.
+
+---
+
+#### **3.2 Add New AG LoB**  
+
+Admins can create new LoBs based on data from AIMS, provided the LoB does not already exist in ART.  
+
+**Steps**:  
+1. Select a new AG LoB from a dropdown populated with data from AIMS.  
+   - Dropdown displays only LoBs that do not already exist in ART.  
+2. Provide a unique name for the new LoB.  
+3. Submit the operation.  
+4. System checks ART DB to validate the input and ensures no duplicates.  
+5. System updates ART DB and logs the action.  
+
+**Validations**:  
+- Ensure the new LoB does not already exist in ART DB.  
+- Verify the input is unique and free from conflicts with existing records.  
+- Reject the creation if dependencies are unresolved.
+
+---
+
+#### **3.3 Remove AG LoB**  
+
+Admins can remove existing LoBs through a soft-delete operation, marking them as inactive in the ART database.  
+
+**Steps**:  
+1. Select the AG LoB to be removed from the dropdown populated with data from ART DB.  
+2. Submit the operation.  
+3. System marks the LoB as `is_deleted = Y` in ART DB.  
+4. LoB no longer appears in ART's active records but remains traceable for audit.  
+
+**Validations**:  
+- Ensure no active records are assigned to the LoB before removal.  
+- Notify the admin of unresolved dependencies, if any.  
+- Provide a warning if removing the LoB might impact existing records.
+
+---
+
+### **4. Purpose and Benefits**  
+
+**Purpose**:  
+The admin functionality enhancements provide improved control over AG groups and LoBs, streamlining processes and ensuring data integrity.  
+
+**Benefits**:  
+- Improved flexibility in managing AG groups and LoBs.  
+- Reduced risk of data duplication and errors.  
+- Increased efficiency through automated validations.  
+- Enhanced compliance with soft deletion and audit logging.
+
+---
+
+### **5. System Architecture**  
+
+The enhancements involve seamless integration between AIMS, ART, and the admin console.  
+
+**Data Flow**:  
+1. AIMS → ART: Data synchronization and validation for dropdowns.  
+2. Admin Console → ART: Admin actions (move, add, remove) update ART DB.  
+3. ART → Admin Console: Error messages and operation logs.  
+
+---
+
+### **6. Security and Access Control**  
+
+**Role-Based Access Control (RBAC)**:  
+- Only authorized admins can access and perform the move, add, and remove operations.  
+
+**Security Features**:  
+- Encrypted connections between the admin console and the ART database.  
+- Audit logging for all admin actions.  
+- Regular access reviews and updates to RBAC policies.
+
+---
+
+### **7. Audit Logging**  
+
+Each admin action is logged for traceability, including:  
+- Admin username.  
+- Date and time of the operation.  
+- Action performed and the impact (e.g., "Moved AG Group X from LoB A to LoB B").  
+
+---
+
+### **8. Error Handling and Notifications**  
+
+**Error Handling**:  
+- Display error messages for invalid inputs (e.g., "Selected AG LoB already exists in ART").  
+- Prompt admin to resolve unresolved dependencies before proceeding.  
+
+**Notifications**:  
+- Success: "Operation completed successfully."  
+- Failure: "Operation failed due to [reason]. Please correct and retry."  
+
+---
+
+### **9. Testing and Quality Assurance**  
+
+**Testing Strategy**:  
+- **Unit Testing**: Validate individual functionalities (move, add, remove).  
+- **Integration Testing**: Test interactions between AIMS, ART, and the admin console.  
+- **User Acceptance Testing (UAT)**: Allow admins to test the system in a controlled environment.  
+- **Regression Testing**: Ensure existing ART functionalities remain unaffected.  
+
+---
+
+### **10. Future Enhancements**  
+
+- **Bulk Operations**: Enable batch processing for moving, adding, or removing AG groups.  
+- **Advanced Reporting**: Provide analytics on admin actions and data trends.  
+- **Integration with Other Systems**: Expand functionality to support other systems beyond AIMS.  
+
+---
+
+### **11. Glossary of Terms**  
+
+- **AG Group**: Authorization Group used for access control.  
+- **LoB**: Line of Business, representing functional divisions.  
+- **AIMS**: New system replacing CBAC for managing AG groups.  
+- **ART**: Existing database system storing AG and LoB data.  
+
+---
+
+This complete document provides clarity, structure, and depth, addressing technical and business requirements while being easily understandable for stakeholders. Let me know if you need further modifications!
 #!/bin/bash
 
 # Check if SID is provided as an argument
