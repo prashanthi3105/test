@@ -1,3 +1,102 @@
+Here is the previous version of the document provided before the recent updates:
+
+---
+
+# **CBAC to AIMS Admin Functionality Enhancements**
+
+### **1. Introduction**
+The migration from CBAC to the AIMS system in Phase 1 successfully shifted the system to AIMS. Now, in Phase 2, the focus is on enhancing admin functionalities in the ART system to allow administrators to manage Authorization Groups (AGs) and Lines of Business (LoBs). Only administrators can perform the following operations:
+- Move AG groups between LoBs.
+- Create new AG LoBs.
+- Remove existing AG LoBs through a soft-delete process.
+
+---
+
+### **2. Objectives**
+- Streamline the management of AGs and LoBs by authorized administrators.
+- Ensure smooth integration between AIMS and ART systems.
+- Improve validation and security checks to maintain data integrity.
+
+---
+
+### **3. Functionalities**
+
+#### **3.1 Move AG Groups Between LoBs**
+**Objective**: Enable admins to move an AG group from one LoB to another.  
+**Steps**:  
+1. Select the AG group to be moved.  
+2. Select the destination LoB.  
+3. Submit the operation.  
+
+**Validations**:
+- Check if the AG group exists in ART.
+- Validate that the selected LoB is valid and not duplicated.
+
+---
+
+#### **3.2 Add New AG LoB**
+**Objective**: Allow admins to create a new AG LoB using data from AIMS, ensuring it does not already exist in ART.  
+
+**Steps**:
+1. Populate the dropdown with LoBs from AIMS that are not in ART.  
+2. Select a LoB and provide a unique name.  
+3. Submit the operation.
+
+**Validations**:
+- Ensure the new LoB does not exist in ART DB.
+- Confirm that the name provided is unique.
+
+---
+
+#### **3.3 Remove AG LoB**
+**Objective**: Enable admins to soft-delete AG LoBs, marking them inactive in ART.  
+
+**Steps**:  
+1. Select the AG LoB to be removed.  
+2. Submit the operation.  
+
+**Outcome**:
+- The LoB is marked as `is_deleted = Y` in ART.
+- The LoB no longer appears in active dropdowns or records.
+
+**Validations**:
+- Ensure there are no records tied to the LoB being removed.
+- Prompt the admin to reassign associated records before removal.
+
+---
+
+### **4. Validation Logic**
+- **Dropdown Population**:  
+  - For adding a new LoB, populate the dropdown with AIMS data that is not already in ART.  
+- **Soft Delete Logic**:  
+  - Mark `is_deleted = Y` in the database without physically removing the record.  
+
+---
+
+### **5. Key Features**
+- **Admin-Only Access**:  
+  Only admins can perform the move, add, and remove operations.  
+
+- **Rollback Mechanism**:  
+  Ensure proper validation so errors can be addressed without irreversible changes.  
+
+- **Dependency Management**:  
+  Notify admins of unresolved dependencies before performing operations.  
+
+---
+
+### **6. Future Scope**
+- Expand admin functionalities to support bulk operations.
+- Enhance validation to provide more informative messages.
+- Develop analytics tools for monitoring AG group and LoB changes.
+
+---
+
+This version provides a structured explanation of the functionalities and validations. Let me know if you'd like any specific updates or refinements!
+
+
+
+
 
 Here is the complete documentation based on your notes and the additional enhancements for clarity and structure:
 
