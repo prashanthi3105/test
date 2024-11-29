@@ -1,35 +1,162 @@
-**Solution:**
+### **Complete Plan for Parent RC and Sub RC Implementation**
 
-The solution to this problem is the development and deployment of an **AI-driven Credit Recommendation Engine**. This engine would leverage machine learning models and advanced data analytics to provide personalized, real-time credit product recommendations based on an individual’s unique financial profile. Here's how the solution works:
+---
 
-1. **Data Collection and Analysis**:  
-   The AI engine gathers and analyzes a range of data points, including credit scores, income, debt levels, spending habits, and financial goals. This allows the system to gain a holistic understanding of the user's financial situation.
+### **Phase 1: Requirement Analysis**
+1. **Understand the Requirements:**
+   - Add a **Sub Reason Code (Sub RC)** dropdown dependent on the selected **Parent RC**.
+   - **If no Sub RCs** exist for a Parent RC:
+     - Hide the Sub RC dropdown.
+     - Display a message: *"No Sub Reason Codes available for the selected Parent Reason Code."*
+   - **If Sub RCs exist** and the Sub RC dropdown is enabled:
+     - Ensure the user selects a value or show a warning message: *"Please select a Sub Reason Code for the selected Parent Reason Code."*
+   - Ensure backward compatibility with old records.
+   - Soft-delete behavior for existing records in `T_BQR_Customer_Calc`.
 
-2. **Personalized Recommendations**:  
-   Based on the analyzed data, the engine recommends credit products (e.g., loans, credit cards, or lines of credit) that best match the user's needs and financial standing. These recommendations are tailored to help users make more informed choices and avoid products with unfavorable terms.
+2. **Identify Key Components:**
+   - **Database:** New table for Sub RCs and column addition to existing tables.
+   - **Backend Services:** APIs to fetch Parent RCs and corresponding Sub RCs.
+   - **Frontend (UI):** Dropdowns for Parent RC and Sub RC with dependent behavior.
+   - **Validation Rules:** Ensure valid combinations of Parent RC and Sub RC during data save.
+   - **Triggers and Procedures:** For validation and soft-delete implementation.
 
-3. **Dynamic Learning and Adaptation**:  
-   As the user’s financial situation changes (e.g., improved credit score, increased income, reduced debt), the AI model adapts and updates its recommendations accordingly. This ensures that users always receive the most up-to-date and relevant credit options.
+---
 
-4. **Risk Assessment and Predictive Analytics**:  
-   The AI model can accurately assess a user’s creditworthiness by using not only traditional data like credit scores, but also alternative factors (such as transaction behavior or social factors). It can also predict future financial behavior, helping to recommend credit products that align with the user’s long-term financial goals.
+### **Phase 2: Design**
 
-5. **Optimized Terms and Conditions**:  
-   The engine identifies credit options that offer the most favorable terms based on the user’s financial profile, such as lower interest rates, better repayment terms, and more suitable loan amounts.
+#### **1. Database Design**
+- **New Table: `T_BQR_Sub_Reason_Code_Def`**
+  - Stores the mapping between Parent RCs and Sub RCs.
+  - Includes soft-delete (`Is_Deleted`) functionality.
 
-6. **Continuous Improvement**:  
-   Over time, the AI system continues to learn from user interactions and behavior, refining its models to improve accuracy, personalization, and overall decision-making quality.
+- **Modify Table: `T_BQR_Customer_Calc`**
+  - Add a column: `Sub_RC`.
 
-### Benefits of the Solution:
-- **Improved Financial Decisions**: Users receive the best-suited credit products, improving their financial outcomes.
-- **Time Savings**: Automated recommendations streamline the decision-making process, reducing the need for manual research and comparison.
-- **Increased Financial Inclusion**: By considering a wider range of data, the AI model can offer credit recommendations to individuals with limited credit history or non-traditional financial backgrounds.
-- **Better Risk Management**: Accurate credit risk assessments help users avoid overextending themselves financially, leading to better loan performance and lower default rates.
+- **Relationships:**
+  - Parent RC and Sub RC will be validated using `T_BQR_Sub_Reason_Code_Def`.
 
-In essence, the AI-powered Credit Recommendation Engine empowers users to make smarter, more personalized credit decisions that align with their financial health and goals.Certainly! Here's an improved version of the problem statement:
+#### **2. UI/UX Design**
+- **Parent RC Dropdown:**
+  - Load all available Parent RCs.
+- **Sub RC Dropdown:**
+  - Dynamically populate based on the selected Parent RC.
+  - Hidden if no Sub RCs are available for the selected Parent RC.
+- **Messages:**
+  - *"No Sub Reason Codes available for the selected Parent Reason Code."*
+  - *"Please select a Sub Reason Code for the selected Parent Reason Code."*
 
-**Problem Statement for a Credit Recommendations Engine:**
+#### **3. Backend Service Design**
+- API for fetching:
+  - **Parent RCs.**
+  - **Sub RCs** for a given Parent RC.
+- Validation rules:
+  - Ensure valid Parent RC and Sub RC combinations during save.
+  - Allow saving with `Sub_RC = NULL` if no Sub RCs exist for the selected Parent RC.
 
-Consumers often face challenges in selecting the most suitable credit products due to a lack of personalized guidance, leading to suboptimal financial decisions. Without tailored recommendations, individuals may end up with credit options that don't align with their financial situation, credit history, or goals, resulting in higher interest rates, unfavorable terms, or missed opportunities for better financial management. 
+---
 
-An AI-powered credit recommendation engine can address this issue by analyzing a user's unique financial data, offering personalized, real-time recommendations. By assessing risk accurately, predicting future financial behavior, and continuously adapting to changes in the user’s profile, the AI model ensures that users receive the most relevant and beneficial credit options, leading to more informed and optimal financial decisions.
+### **Phase 3: Development**
+
+#### **1. Database Changes**
+1. **Create `T_BQR_Sub_Reason_Code_Def` Table:**
+   ```sql
+   CREATE TABLE T_BQR_Sub_Reason_Code_Def (
+       Calc_Code INT PRIMARY KEY AUTO_INCREMENT,
+       Parent_RC INT NOT NULL,
+       Sub_RC INT NOT NULL,
+       Sub_RC_Desc VARCHAR(255),
+       Display_Order INT,
+       Parent_Lookup_Code VARCHAR(50),
+       Sub_Lookup_Code VARCHAR(50),
+       Created_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+       Created_By VARCHAR(50),
+       Updated_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+       Updated_By VARCHAR(50),
+       Is_Deleted BOOLEAN DEFAULT FALSE,
+       UNIQUE (Parent_RC, Sub_RC)
+   );
+   ```
+
+2. **Modify `T_BQR_Customer_Calc` Table:**
+   ```sql
+   ALTER TABLE T_BQR_Customer_Calc
+   ADD COLUMN Sub_RC INT DEFAULT NULL;
+   ```
+
+3. **Soft Delete Implementation:**
+   - **Trigger for Soft Delete on `T_BQR_Sub_Reason_Code_Def`:**
+     ```sql
+     CREATE TRIGGER trg_soft_delete_sub_rc
+     BEFORE DELETE ON T_BQR_Sub_Reason_Code_Def
+     FOR EACH ROW
+     BEGIN
+         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Soft delete is enforced. Use Is_Deleted flag instead.';
+     END;
+     ```
+
+#### **2. Backend Development**
+1. **API for Parent RC:**
+   - Fetch all Parent RCs.
+2. **API for Sub RCs:**
+   - Fetch Sub RCs for the selected Parent RC.
+   - Include an indicator if no Sub RCs exist.
+   - Example response:
+     ```json
+     {
+         "parentRC": 946,
+         "subRCs": [],
+         "message": "No Sub Reason Codes available for the selected Parent Reason Code."
+     }
+     ```
+3. **Validation Logic:**
+   - Ensure the selected Parent RC and Sub RC are valid combinations.
+   - Allow saving with `Sub_RC = NULL` if no Sub RCs exist.
+
+#### **3. Frontend Development**
+1. **Parent RC Dropdown:**
+   - Populate using API.
+2. **Sub RC Dropdown:**
+   - Dynamically populate based on selected Parent RC.
+   - Hide dropdown if no Sub RCs exist.
+   - Show the message: *"No Sub Reason Codes available for the selected Parent Reason Code."*
+3. **Form Validation:**
+   - If the Sub RC dropdown is enabled but no value is selected:
+     - Show the message: *"Please select a Sub Reason Code for the selected Parent Reason Code."*
+     - Prevent form submission.
+
+---
+
+### **Phase 4: Testing**
+
+#### **1. Unit Tests**
+- Validate correct fetching of Parent RCs and Sub RCs.
+- Test save functionality with and without Sub RC.
+
+#### **2. Integration Tests**
+- Test the dependent dropdown behavior.
+- Validate backend responses and error handling.
+
+#### **3. Regression Tests**
+- Ensure old records are not impacted.
+- Verify soft-deleted Sub RCs do not appear in the dropdown.
+
+---
+
+### **Phase 5: Deployment**
+
+#### **1. Deployment Steps**
+- Deploy database changes.
+- Deploy backend services.
+- Update the frontend.
+
+#### **2. Rollback Plan**
+- Revert database schema changes if issues arise.
+- Ensure backup of existing data.
+
+---
+
+### **Phase 6: Maintenance and Support**
+- Monitor API and database performance.
+- Regularly clean up soft-deleted records if needed.
+
+Let me know if you need additional details or examples!
