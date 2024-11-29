@@ -1,3 +1,97 @@
+
+
+Here’s a streamlined plan to implement the proposed solution for integrating a **Sub-Reason Code (SubRC)** feature in your application:
+
+---
+
+### **Step 1: Database Schema Updates**
+1. **Create a New Table: `T_BQR_Sub_Reason_Code_Def`**
+   - This table will store the mapping between **Parent RCs** and **Sub RCs**.
+   - Columns:
+     - `Calc_Code` (Primary Key, if applicable)
+     - `Parent_RC`
+     - `Display_Order`
+     - `Sub_RC`
+     - `Created_Date`
+     - `Parent_Lookup_Code`
+     - `Created_By`
+     - `Sub_Lookup_Code`
+     - `Updated_Date`
+     - `Sub_RC_Desc`
+     - `Updated_By`
+     - `Is_Deleted` (Boolean flag for soft delete)
+   - Constraints: Ensure unique combinations of `Parent_RC` and `Sub_RC`.
+
+2. **Add Column in Existing Table: `T_BQR_Customer_Calc`**
+   - Add a new column: `Sub_RC`.
+   - Update necessary triggers to populate this column based on user input.
+
+3. **Modify Views**
+   - Update existing views to include the new `Sub_RC` data.
+   - Ensure backward compatibility to prevent disruption to old records.
+
+---
+
+### **Step 2: Application Changes**
+1. **Segregate Drop-Down Data**
+   - **Parent RC Dropdown**:
+     - Load from the existing Parent RC database.
+   - **Sub RC Dropdown**:
+     - Dynamically load based on the selected **Parent RC**.
+     - Data fetched from the new `T_BQR_Sub_Reason_Code_Def` table.
+     - Show only `Is_Deleted = FALSE` records.
+
+2. **User Interface Enhancements**
+   - Add a new dependent drop-down for **Sub RC**.
+   - Enable **Sub RC** dropdown only when a valid **Parent RC** is selected.
+
+3. **Validation and Save Logic**
+   - Ensure both **Parent RC** and **Sub RC** values are saved to `T_BQR_Customer_Calc` table.
+
+4. **Soft Delete Implementation**
+   - Mark existing entries in the **reason code list** as `Is_Deleted = TRUE`.
+   - Ensure the application handles these records seamlessly (e.g., filtering out deleted entries in queries).
+
+---
+
+### **Step 3: Data Handling**
+1. **Data Loading for Lookups**
+   - Load lookup values (`Parent RC`, `Sub RC`, `Sub RC Desc`) into appropriate caching layers for performance.
+
+2. **Backward Compatibility**
+   - Existing records in `T_BQR_Customer_Calc` should remain intact.
+   - If no **Sub RC** exists for an old record, set `Sub_RC = NULL`.
+
+---
+
+### **Step 4: Triggers and Procedures**
+1. **Trigger for `T_BQR_Customer_Calc`**
+   - On insert/update, validate and populate `Sub_RC` based on the selected `Parent_RC`.
+
+2. **Trigger for `T_BQR_Sub_Reason_Code_Def`**
+   - Ensure changes in this table reflect in lookup caches or dropdowns.
+
+3. **Stored Procedures**
+   - Add procedures for:
+     - Fetching **Parent RC** and corresponding **Sub RC**.
+     - Performing soft delete on **Sub RCs**.
+
+---
+
+### **Step 5: Testing and Deployment**
+1. **Testing**
+   - Validate end-to-end functionality, including the new dropdown.
+   - Test with old records to ensure no regressions.
+   - Test soft delete behavior.
+
+2. **Deployment**
+   - Deploy schema changes, triggers, views, and application updates together to avoid data inconsistencies.
+
+---
+
+Let me know if you need further details on implementation or SQL examples!
+
+
 ### **Complete Plan for Parent RC and Sub RC Implementation**
 
 ---
