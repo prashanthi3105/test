@@ -1,5 +1,83 @@
 
+Here’s how to implement the functionality to hide the **Sub RC** dropdown when no Sub RC is available and show a warning message when required:
 
+---
+
+### **Application Updates for Dropdown Behavior**
+
+#### **1. Frontend Logic for Sub RC Dropdown**
+- **Dropdown Visibility:**
+  - **Default State:** The **Sub RC** dropdown is hidden.
+  - **When Parent RC is Selected:**
+    - Fetch **Sub RCs** for the selected **Parent RC** via an API or lookup call.
+    - If no **Sub RCs** exist:
+      - Hide the **Sub RC** dropdown.
+      - Show a message: *"No Sub Reason Codes available for the selected Parent Reason Code."*
+    - If **Sub RCs** exist:
+      - Display the **Sub RC** dropdown.
+      - Populate it with the corresponding Sub RC values.
+
+#### **2. Warning Message on Empty Selection**
+- **When Sub RC is Required but Not Selected:**
+  - Add a validation check when submitting the form:
+    - If the **Sub RC** dropdown is enabled but no value is selected, show a warning message:  
+      *"Please select a Sub Reason Code for the selected Parent Reason Code."*
+    - Prevent the form from being submitted until a valid **Sub RC** is selected.
+
+#### **3. Example Workflow**
+1. User selects a **Parent RC**:
+   - Fetch the list of corresponding **Sub RCs**.
+   - If no **Sub RCs** exist:
+     - Hide the **Sub RC** dropdown.
+     - Show the message: *"No Sub Reason Codes available for the selected Parent Reason Code."*
+   - If **Sub RCs** exist:
+     - Display the **Sub RC** dropdown with available values.
+     - Allow the user to select a value.
+
+2. User submits the form:
+   - If the **Sub RC** dropdown is visible but no value is selected:
+     - Show a validation error: *"Please select a Sub Reason Code."*
+   - Proceed with saving the data only if both **Parent RC** and (if applicable) **Sub RC** are valid.
+
+---
+
+### **Backend Logic Updates**
+
+#### **1. Sub RC API Enhancement**
+- Modify the API fetching **Sub RCs** for a given **Parent RC**:
+  - If no records are found in `T_BQR_Sub_Reason_Code_Def` for the given **Parent RC**:
+    - Return a response with an empty list.
+    - Include a flag or message indicating that no **Sub RCs** are available.
+  - Example Response:
+    ```json
+    {
+      "parentRC": 946,
+      "subRCs": [],
+      "message": "No Sub Reason Codes available for the selected Parent Reason Code."
+    }
+    ```
+
+#### **2. Validation at Save**
+- Ensure the backend validates the **Sub RC** as follows:
+  - If **Parent RC** has corresponding **Sub RCs** in the database:
+    - Require a valid **Sub RC** to be selected.
+  - If no **Sub RCs** exist for the **Parent RC**, allow saving with `Sub_RC = NULL`.
+
+---
+
+### **UI Implementation Example**
+
+#### **HTML & JavaScript**
+```html
+<form id="reasonCodeForm">
+  <!-- Parent RC Dropdown -->
+  <label for="parentRC">Parent Reason Code:</label>
+  <select id="parentRC" onchange="loadSubRCs()">
+    <!-- Options dynamically populated -->
+  </select>
+
+  <!-- Sub RC Dropdown -->
+  <div id="sub
 ### Application Changes for Parent RC and Sub RC
 
 ---
