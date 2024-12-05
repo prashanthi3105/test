@@ -1,3 +1,24 @@
+
+
+<td width="20%" align="left">
+    <label for="auSelectId">Access Group LOB</label>
+</td>
+<td align="left" id="auTRId">
+    <!-- Dropdown for Access Group LOB Field -->
+    <form:select class="formInput" path="barCustomerView.auSelect" name="barCustomerView.auSelect" id="auSelectId" onchange="onchangeAU(this)">
+        <form:option value="-1">Select Access Group LOB</form:option>
+        <!-- Loop to dynamically generate Access Group LOB options -->
+        <c:forEach items="${bqrCalculatorWizardForm.bqrCustomerView.accessGrouplobs}" var="accessGrouplobVal">
+            <form:option value="${accessGrouplobVal.adLobId}">
+                ${encodeForHTML(accessGrouplobVal.adGrpArtLobName)}
+            </form:option>
+        </c:forEach>
+    </form:select>
+    <input type="button" name="btnChangeAU" value="Submit" onclick="javascript: submitAUChange()" />
+</td>
+
+
+
 Here is the previous version of the document provided before the recent updates:
 
 ---
