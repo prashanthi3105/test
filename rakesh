@@ -1,4 +1,55 @@
 
+<tbody>
+    <tr><th align="left" colspan="2">Admin Functions:</th></tr>
+</tbody>
+
+<table width="100%" align="left" border="0">
+    <c:if test="${showLegalHoldFunctions == 'false'}">
+        <!-- Access Group LOB Dropdown -->
+        <td width="20%" align="left">
+            <label for="auSelectId">
+                <c:out value="Access Group LOB" escapeXml="false"/>
+                <a href="javascript: void(0);" onclick="showTooltip2(event, 'accessGrouplobId', '6274', 'R', 25, 25, true)" title="Click here for more information">
+                    <img src="<%=toolTipImg%>" width="16" height="16" alt="Click here for more information" class="requiredfield"/>
+                </a>
+            </label>
+        </td>
+        <td align="left" id="auTRId">
+            <!-- Dropdown for Access Group LOB Field -->
+            <form:select class="formInput" path="barCustomerView.accessGrouplobSelect" name="barCustomerView.accessGrouplobSelect" id="auSelectId" size="1" tabindex="0" onchange="onchangeAccessGroupLob(this)">
+                <form:option value="-1">&nbsp;</form:option>
+                <!-- Loop to dynamically generate Access Group LOB options -->
+                <c:forEach items="${bqrCalculatorWizardForm.bqrCustomerView.accessGrouplobs}" var="accessGrouplobVal">
+                    <form:option value="${accessGrouplobVal.adLobId}">
+                        ${encodeForHTML(accessGrouplobVal.adGrpArtLobName)}
+                    </form:option>
+                </c:forEach>
+            </form:select>
+            <input type="button" name="btnChangeAU" value="Submit" onclick="javascript: submitAUChange()"/>
+        </td>
+    </c:if>
+
+    <c:if test="${showLegalHoldFunctions == 'true'}">
+        <!-- Other fields for Legal Hold -->
+        <tr>
+            <td width="20%" align="left">
+                <input type="radio" id="addLH" name="addLH" value="Y" onclick="javascript: disableRemLHRB()" />&nbsp; Add Legal Hold
+            </td>
+            <td align="left" id="addLHTRId">
+                <input type="button" name="btnChangeLH" value="Submit" onclick="javascript: submitLegalHold()" />
+            </td>
+        </tr>
+        <tr>
+            <td width="20%" align="left">
+                <input type="radio" id="remLH" name="remLH" value="N" onclick="javascript: disableAddlLHRB()" />&nbsp; Remove Legal Hold
+            </td>
+        </tr>
+    </c:if>
+</table>
+
+
+
+
 
 <td width="20%" align="left">
     <label for="auSelectId">Access Group LOB</label>
