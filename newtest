@@ -1,4 +1,37 @@
 
+<table width="100%" align="left" border="1">
+  <tbody>
+    <!-- BRT-749 -->
+    <tr>
+      <td width="20%" align="left">
+        <label for="auId">Select Access Group LOB:</label>
+      </td>
+      <td align="left" id="auTRId">
+        <select id="auId" name="auId" onchange="javascript: showHideAUSection()">
+          <option value="Access group LOB">Access Group LOB (Move TO)</option>
+          <!-- You can add more options here if needed -->
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td align="left">
+        <label for="newAuselectId">Target AU:</label>
+      </td>
+      <td align="left">
+        <input type="text" class="formInput" id="newAuselectId" name="targetAu" maxlength="25">
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" align="left">
+        <input type="button" name="btnChangeAU" value="Submit" onclick="javascript: submitaUChange()">
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+
 ### **Complete Plan for Parent RC and Sub RC Implementation**
 
 ---
