@@ -1,5 +1,60 @@
 
 <tbody>
+<tr><th align="left" colspan="2">Admin Functions:</th></tr>
+</tbody>
+</table>
+<div>
+<table width="100%" align="left" border="0">
+<!-- Conditional logic for Legal Hold Functions -->
+<c:if test="${showLegalHoldFunctions != 'false'}">
+    <!-- AU Section -->
+    <tr>
+        <td width="20%" align="left">AU:</td>
+        <td align="left" id="auTRId" style="display: none">
+            <!-- Dropdown for AU selection -->
+            <select id="newAuSelectId" name="targetAu">
+                <option value="AU">AU</option>
+                <!-- Add other options if necessary -->
+            </select>&nbsp;&nbsp;
+            <!-- Submit button for AU change -->
+            <input type="button" name="btnChangeAU" value="Submit" onclick="javascript: submitAUChange()" />
+        </td>
+    </tr>
+</c:if>
+
+<c:if test="${showLegalHoldFunctions == 'true'}">
+    <!-- Add Legal Hold Section -->
+    <tr>
+        <td width="20%" align="left">Add Legal Hold:</td>
+        <td align="left" id="addLHTRId">
+            <!-- Dropdown for Add Legal Hold selection -->
+            <select id="addLH" name="addLH" onchange="javascript: disableRemLHRB()">
+                <option value="Y">Add Legal Hold</option>
+                <!-- Add other options if necessary -->
+            </select>&nbsp;&nbsp;
+            <!-- Submit button for Add Legal Hold -->
+            <input type="button" name="btnChangeLH" value="Submit" onclick="javascript: submitLegalHold()" />
+        </td>
+    </tr>
+
+    <!-- Remove Legal Hold Section -->
+    <tr>
+        <td width="20%" align="left">Remove Legal Hold:</td>
+        <td align="left">
+            <!-- Dropdown for Remove Legal Hold selection -->
+            <select id="remLH" name="remLH" onchange="javascript: disableAddLHRB()">
+                <option value="N">Remove Legal Hold</option>
+                <!-- Add other options if necessary -->
+            </select>&nbsp;&nbsp;
+        </td>
+    </tr>
+</c:if>
+</table>
+</div>
+
+
+
+<tbody>
     <tr><th align="left" colspan="2">Admin Functions:</th></tr>
 </tbody>
 
