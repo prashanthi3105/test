@@ -1,4 +1,38 @@
 
+<table width="100%" align="left" border="0">
+    <c:if test="${showLegalHoldFunctions == 'false'}">
+        <tbody>
+            <tr>
+                <td width="20%" align="left">
+                    <label for="auld">Access Group LOB: </label>
+                </td>
+                <td align="left" id="accessGrouplobTrId">
+                    <!-- Corrected form:select -->
+                    <form:select cssClass="formInput" path="bqrCustomerView.accessGrouplobSelect" name="bqrCustomerView.accessGrouplobSelect">
+                        <form:option value="-1">&nbsp;</form:option>
+                        
+                        <!-- Corrected JSTL forEach loop -->
+                        <c:forEach items="${bqrCustomerView.accessGrouplobs}" var="accessGrouplobsVal">
+                            <form:option itemValue="${accessGrouplobsVal.adLobId}" value="${accessGrouplobsVal.adLobId}">
+                                ${accessGrouplobsVal.adGrpArtLobName}
+                            </form:option>
+                        </c:forEach>
+                    </form:select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" align="left">
+                    <input type="button" name="btnChangeAU" value="Submit" onclick="javascript:submitaUChange()">
+                </td>
+            </tr>
+        </tbody>
+    </c:if>
+</table>
+
+
+
+
+
 <table width="100%" align="left" border="1">
   <tbody>
     <!-- BRT-749 -->
