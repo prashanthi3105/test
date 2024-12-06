@@ -5,6 +5,30 @@
 <!-- Form to bind with BqrSearchForm -->
 <form:form modelAttribute="bqrSearchForm" method="POST">
     <label for="accessGroupLobSelect">Access Group LOB:</label>
+    
+    <!-- Bind dropdown to 'accessGroupLobSelect' property in the form -->
+    <form:select path="accessGroupLobSelect" cssClass="formInput">
+        <form:option value="-1">Select an Option</form:option>
+
+        <!-- Loop through the 'accessGroupLobs' list and create options -->
+        <c:forEach var="lob" items="${bqrSearchForm.accessGroupLobs}">
+            <!-- Set the value as LOB ID and display the LOB Name -->
+            <form:option value="${lob.adLobId}">${lob.adGrpArtLobName}</form:option>
+        </c:forEach>
+    </form:select>
+
+    <!-- Submit button -->
+    <input type="submit" value="Submit" />
+</form:form>
+
+
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+
+<!-- Form to bind with BqrSearchForm -->
+<form:form modelAttribute="bqrSearchForm" method="POST">
+    <label for="accessGroupLobSelect">Access Group LOB:</label>
     <form:select path="accessGrouplobSelect" cssClass="formInput">
         <form:option value="-1">Select an Option</form:option>
 
