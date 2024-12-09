@@ -1,3 +1,113 @@
+CREATE OR REPLACE PROCEDURE UPDATE_BOR_AD_GROUPS (
+    BORID_IN          IN VARCHAR2,
+    NEWAD_GROUP_IN    IN VARCHAR2,
+    ADMIN_USERID_IN   IN VARCHAR2,
+    RESULT_OUT        OUT VARCHAR2,
+    SAME_AD_GROUP_STOP OUT BOOLEAN
+) AS
+    -- Local variables
+    EXISTING_AD_COUNT        INTEGER := 0;
+    V_CURRENT_AD_GROUP       VARCHAR2(50);
+    OLD_AD_GROUP_NAME        VARCHAR2(50);
+    NEW_AD_GROUP_NAME        VARCHAR2(50);
+    ACTION_DESCRIPTION       VARCHAR2(2000);
+
+BEGIN
+    -- Initialize the result message
+    RESULT_OUT := 'Attempting to update the AD group...';
+
+    -- Step 1: Retrieve the current AD group for the BOR ID
+    BEGIN
+        SELECT AD_LOB_ID 
+        INTO V_CURRENT_AD_GROUP
+        FROM T_BOR_CUSTOMER_CALC
+        WHERE CUSTOMER_REQUEST_SEQ = BORID_IN;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RESULT_OUT := 'Error: No record found for the provided BOR ID.';
+            RETURN;
+    END;
+
+    -- Step 2: Check if the new AD group is the same as the current AD group
+    IF V_CURRENT_AD_GROUP = NEWAD_GROUP_IN THEN
+        SAME_AD_GROUP_STOP := TRUE;
+        RESULT_OUT := 'No changes made: The source and destination AD groups are the same.';
+        RETURN;
+    ELSE
+        SAME_AD_GROUP_STOP := FALSE;
+    END IF;
+
+    -- Step 3: Validate if the new AD group exists
+    BEGIN
+        SELECT COUNT(*)
+        INTO EXISTING_AD_COUNT
+        FROM T_ART_AIMS_AD_GROUPS
+        WHERE AD_LOB_ID = NEWAD_GROUP_IN;
+
+        IF EXISTING_AD_COUNT = 0 THEN
+            RESULT_OUT := 'Error: The specified AD group does not exist. Please contact the administrator.';
+            RETURN;
+        END IF;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RESULT_OUT := 'Error: Unable to validate the new AD group.';
+            RETURN;
+    END;
+
+    -- Step 4: Retrieve names for logging
+    BEGIN
+        SELECT AD_GRP_ART_LOB_NAME
+        INTO NEW_AD_GROUP_NAME
+        FROM T_ART_AIMS_AD_GROUPS
+        WHERE AD_LOB_ID = NEWAD_GROUP_IN;
+
+        SELECT AD_GRP_ART_LOB_NAME
+        INTO OLD_AD_GROUP_NAME
+        FROM T_BOR_CUSTOMER_CALC
+        WHERE CUSTOMER_REQUEST_SEQ = BORID_IN;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RESULT_OUT := 'Error: Unable to fetch AD group names.';
+            RETURN;
+    END;
+
+    -- Step 5: Prepare the action description
+    ACTION_DESCRIPTION := 'Changed from "' || OLD_AD_GROUP_NAME || '" to "' || NEW_AD_GROUP_NAME || '"';
+
+    -- Step 6: Update the AD group for the BOR ID
+    BEGIN
+        UPDATE T_BOR_CUSTOMER_CALC
+        SET AD_LOB_ID = NEWAD_GROUP_IN,
+            AD_GRP_ART_LOB_NAME = NEW_AD_GROUP_NAME
+        WHERE CUSTOMER_REQUEST_SEQ = BORID_IN;
+
+        IF SQL%ROWCOUNT > 0 THEN
+            -- Step 7: Log the admin action
+            INSERT INTO T_ART_ADMIN_ACTION_LOG (
+                LOG_ID, BORID, ACTION_DATE, ACTION_DESCRIPTION, ACTION_TYPE, ADMIN_USER_ID
+            ) VALUES (
+                T_ART_ADMIN_ACTION_LOG_SEQ.NEXTVAL,
+                BORID_IN,
+                SYSDATE,
+                ACTION_DESCRIPTION,
+                'Record Transfer',
+                ADMIN_USERID_IN
+            );
+
+            RESULT_OUT := 'Success: AD group updated successfully.';
+        ELSE
+            RESULT_OUT := 'Error: Update failed, no rows affected.';
+        END IF;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RESULT_OUT := 'Error: Failed to update the AD group.';
+            RETURN;
+    END;
+END UPDATE_BOR_AD_GROUPS;
+/
+
+
+
 
 
 In your case, when dealing with dropdowns, you would typically use `document.getElementById` (or another method, like `querySelector`) to access the dropdown and retrieve its selected value.
