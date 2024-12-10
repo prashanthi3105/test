@@ -10,6 +10,21 @@ window.onload = function() {
     }
 };
 
+
+<script>
+    window.onload = function() {
+        // Get the showAdminFunction flag passed from the server
+        var showAdminFunction = ${showAdminFunction}; // Assuming this is passed from the server as a boolean
+
+        if (showAdminFunction) {
+            // Enable the dropdown when showAdminFunction is true
+            var dropdown = document.getElementById('strAccessGroupLobSelected');
+            dropdown.disabled = false;
+        }
+    }
+</script>
+
+
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
