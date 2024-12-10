@@ -1,3 +1,14 @@
+function enableDropdown() {
+    var dropdown = document.getElementById('strAccessGroupLobSelected');
+    dropdown.disabled = false;  // Force enabling the dropdown
+}
+
+window.onload = function() {
+    var showAdminFunction = ${showAdminFunction}; // Get the flag from the server
+    if (showAdminFunction) {
+        enableDropdown();  // Call the function to enable the dropdown if the condition is true
+    }
+};
 
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
