@@ -1,3 +1,197 @@
+You're right, the `run_efm_aarc.py` section from the provided Python code includes the main method, which initializes the program, reads data, processes it, and writes the output. Below is the **converted Java version** that includes the `main` method to replicate the functionality of `run_efm_aarc.py`.
+
+---
+
+### Full Java Code with Main Method:
+
+```java
+import java.util.*;
+import java.io.*;
+import com.fasterxml.jackson.databind.ObjectMapper; // For JSON parsing
+
+public class EFMAARC {
+
+    private List<Map<String, Object>> df; // DataFrame equivalent
+    private int n; // Number of reasons
+    private Map<String, Map<String, Map<String, Object>>> dict; // Dictionary structure
+    private List<String> topBQR; // Top BQR list
+
+    // Constructor
+    public EFMAARC(List<Map<String, Object>> df, int n, Map<String, Map<String, Map<String, Object>>> dict, List<String> topBQR) {
+        this.df = df;
+        this.n = n;
+        this.dict = dict;
+        this.topBQR = topBQR;
+    }
+
+    // Calculate distances
+    public List<Map<String, Object>> calcDistance() {
+        for (Map.Entry<String, Map<String, Object>> entry : dict.get("median_dict").entrySet()) {
+            String key = entry.getKey();
+            Map<String, Object> scores = entry.getValue();
+
+            for (String var : scores.keySet()) {
+                for (Map<String, Object> row : df) {
+                    if (row.containsKey(var + "_score")) {
+                        double score = (double) row.getOrDefault(var + "_score", 0.0);
+                        double medianScore = (double) scores.get(var);
+                        row.put(var + "_distance", score - medianScore);
+                    }
+                }
+            }
+        }
+        return df;
+    }
+
+    // Calculate variable deviation by model
+    public List<Map<String, Object>> calcVarDeviationByModel() {
+        for (Map<String, Object> row : df) {
+            String model = (String) row.getOrDefault("model", "");
+
+            // Model A and B: Nullify qualitative factor distances
+            if ("Model A".equals(model) || "Model B".equals(model)) {
+                for (String qualVar : getQualVars()) {
+                    row.put(qualVar + "_distance", null);
+                }
+            }
+
+            // Model-specific adjustments
+            Map<String, Object> coeffDict = dict.get("coeff_dict").get(model.toLowerCase(Locale.ROOT));
+            if (coeffDict != null) {
+                for (String finalVar : getFinalVars()) {
+                    if (row.containsKey(finalVar + "_distance")) {
+                        double coeff = (double) coeffDict.getOrDefault("modelA_coeff", 1.0);
+                        row.put(finalVar + "_distance", coeff * (double) row.get(finalVar + "_distance"));
+                    }
+                }
+
+                // Special handling for pd6_a_logodds_distance
+                if (row.containsKey("pd6_a_logodds_distance")) {
+                    double pd6Coeff = (double) coeffDict.getOrDefault("pd6_coeff", 1.0);
+                    row.put("pd6_a_logodds_distance", pd6Coeff * (double) row.get("pd6_a_logodds_distance"));
+                }
+            }
+        }
+        return df;
+    }
+
+    // Rank variables with ties (top or bottom)
+    public Map<String, List<String>> aarcRankWithTie(String direction) {
+        boolean isNegative = "negative".equalsIgnoreCase(direction);
+        List<String> importanceCols = getColImportance();
+
+        Map<String, List<String>> rankedReasons = new HashMap<>();
+        for (Map<String, Object> row : df) {
+            List<Map.Entry<String, Double>> entries = new ArrayList<>();
+
+            // Collect non-null distances
+            for (String col : importanceCols) {
+                if (row.containsKey(col)) {
+                    Double value = (Double) row.get(col);
+                    if (value != null) {
+                        entries.add(Map.entry(col, value));
+                    }
+                }
+            }
+
+            // Sort based on ascending/descending values
+            entries.sort((a, b) -> isNegative ? a.getValue().compareTo(b.getValue()) : b.getValue().compareTo(a.getValue()));
+
+            // Collect top N variables
+            List<String> topN = new ArrayList<>();
+            for (int i = 0; i < Math.min(n, entries.size()); i++) {
+                topN.add(entries.get(i).getKey().replace("_distance", ""));
+            }
+            rankedReasons.put(row.toString(), topN); // Use row identifier as key
+        }
+
+        return rankedReasons;
+    }
+
+    // Top reasons
+    public List<Map<String, Object>> topReason() {
+        Map<String, List<String>> bottomReasons = aarcRankWithTie("negative");
+        Map<String, List<String>> topReasons = aarcRankWithTie("positive");
+
+        for (Map<String, Object> row : df) {
+            String bqr = (String) row.getOrDefault("BQR", "");
+
+            for (int i = 1; i <= n; i++) {
+                String posCd = "aarc_pos_cd" + i;
+                String negCd = "aarc_neg_cd" + i;
+
+                row.put("efm_re_cd" + i, topBQR.contains(bqr) ? row.get(posCd) : row.get(negCd));
+            }
+        }
+
+        return df;
+    }
+
+    // Helper methods for variables
+    private List<String> getFinalVars() {
+        return Arrays.asList("ca_to_cl", "cash_to_ta", "chg_roa", "ebitda_to_intepitd", "sales_growth", "stp_to_ta", "ta_to_te", "totas");
+    }
+
+    private List<String> getQualVars() {
+        return Arrays.asList("statementquality", "historicaltrends", "managementstrength", "industryoutlook", "operationalrisk", "acquisitintegratrsk", "riskrelationship");
+    }
+
+    private List<String> getColImportance() {
+        return Arrays.asList("pd6_a_logodds_distance", "ebitda_to_intcpltd_distance", "totas_distance", "cash_to_ta_distance", "sales_growth_distance", "historicaltrends_distance",
+                "chg_roa_distance", "statementquality_distance", "td_to_te_distance", "stp_to_ta_distance", "managementstrength_distance",
+                "ca_to_cl_distance", "industryoutlook_distance", "operationalrisk_distance", "acquisitintegratrsk_distance", "riskrelationship_distance");
+    }
+
+    // Main Method
+    public static void main(String[] args) {
+        try {
+            // File paths
+            String filePath = "input_data.parquet"; // Replace with the actual parquet file path
+            String dictPath = "dict.json"; // Replace with the actual JSON file path
+            String outputPath = "output_file.parquet"; // Output file path
+
+            // Load data (Use a library for reading parquet)
+            List<Map<String, Object>> df = new ArrayList<>(); // Dummy DataFrame, replace with actual parquet data loader
+            // Load dictionary
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Map<String, Map<String, Object>>> dict = objectMapper.readValue(new File(dictPath), Map.class);
+
+            // Initialize topBQR
+            List<String> topBQR = Arrays.asList("35", "42", "45", "48"); // Update based on your data
+
+            // Create EFM_AARC object
+            EFMAARC obj = new EFMAARC(df, 3, dict, topBQR);
+
+            // Perform calculations
+            df = obj.calcDistance();
+            df = obj.calcVarDeviationByModel();
+            df = obj.topReason();
+
+            // Save the output (Implement Parquet saving using a library)
+            // Example: saveToParquet(df, outputPath);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+---
+
+### Explanation:
+1. **File Handling**:
+   - The `ObjectMapper` from Jackson library reads the JSON dictionary.
+   - Parquet reading/writing requires an additional library like Apache Arrow or a custom implementation.
+
+2. **Main Logic**:
+   - The `main` method mirrors the Python `main` function, including loading the dictionary, processing the DataFrame, and saving results.
+
+3. **Output**:
+   - Replace the dummy input/output handlers with actual file processing logic using appropriate libraries.
+
+Let me know if you need clarification or further refinement!
+
 I understand the importance of accuracy in converting your Python code to Java. I will carefully analyze the Python code you've provided and ensure the Java version matches its structure and functionality. Below, I will reimplement the Java version step by step while maintaining consistency with the logic from your Python code. 
 
 ### Step-by-Step Conversion
