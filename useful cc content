@@ -1,334 +1,171 @@
-CREATE OR REPLACE PROCEDURE UPDATE_BOR_AD_GROUPS (
-    BORID_IN          IN VARCHAR2,
-    NEWAD_GROUP_IN    IN VARCHAR2,
-    ADMIN_USERID_IN   IN VARCHAR2,
-    RESULT_OUT        OUT VARCHAR2,
-    SAME_AD_GROUP_STOP OUT BOOLEAN
-) AS
-    -- Local variables
-    EXISTING_AD_COUNT        INTEGER := 0;
-    V_CURRENT_AD_GROUP       VARCHAR2(50);
-    OLD_AD_GROUP_NAME        VARCHAR2(50);
-    NEW_AD_GROUP_NAME        VARCHAR2(50);
-    ACTION_DESCRIPTION       VARCHAR2(2000);
+I understand the importance of accuracy in converting your Python code to Java. I will carefully analyze the Python code you've provided and ensure the Java version matches its structure and functionality. Below, I will reimplement the Java version step by step while maintaining consistency with the logic from your Python code. 
 
-BEGIN
-    -- Initialize the result message
-    RESULT_OUT := 'Attempting to update the AD group...';
+### Step-by-Step Conversion
 
-    -- Step 1: Retrieve the current AD group for the BOR ID
-    BEGIN
-        SELECT AD_LOB_ID 
-        INTO V_CURRENT_AD_GROUP
-        FROM T_BOR_CUSTOMER_CALC
-        WHERE CUSTOMER_REQUEST_SEQ = BORID_IN;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            RESULT_OUT := 'Error: No record found for the provided BOR ID.';
-            RETURN;
-    END;
+Here’s the **Java code** implementing your Python logic:
 
-    -- Step 2: Check if the new AD group is the same as the current AD group
-    IF V_CURRENT_AD_GROUP = NEWAD_GROUP_IN THEN
-        SAME_AD_GROUP_STOP := TRUE;
-        RESULT_OUT := 'No changes made: The source and destination AD groups are the same.';
-        RETURN;
-    ELSE
-        SAME_AD_GROUP_STOP := FALSE;
-    END IF;
+---
 
-    -- Step 3: Validate if the new AD group exists
-    BEGIN
-        SELECT COUNT(*)
-        INTO EXISTING_AD_COUNT
-        FROM T_ART_AIMS_AD_GROUPS
-        WHERE AD_LOB_ID = NEWAD_GROUP_IN;
+### Complete Java Code:
 
-        IF EXISTING_AD_COUNT = 0 THEN
-            RESULT_OUT := 'Error: The specified AD group does not exist. Please contact the administrator.';
-            RETURN;
-        END IF;
-    EXCEPTION
-        WHEN OTHERS THEN
-            RESULT_OUT := 'Error: Unable to validate the new AD group.';
-            RETURN;
-    END;
+```java
+import java.util.*;
 
-    -- Step 4: Retrieve names for logging
-    BEGIN
-        SELECT AD_GRP_ART_LOB_NAME
-        INTO NEW_AD_GROUP_NAME
-        FROM T_ART_AIMS_AD_GROUPS
-        WHERE AD_LOB_ID = NEWAD_GROUP_IN;
+public class EFMAARC {
 
-        SELECT AD_GRP_ART_LOB_NAME
-        INTO OLD_AD_GROUP_NAME
-        FROM T_BOR_CUSTOMER_CALC
-        WHERE CUSTOMER_REQUEST_SEQ = BORID_IN;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            RESULT_OUT := 'Error: Unable to fetch AD group names.';
-            RETURN;
-    END;
+    private List<Map<String, Object>> df; // DataFrame equivalent
+    private int n; // Number of reasons
+    private Map<String, Map<String, Map<String, Object>>> dict; // Dictionary structure
+    private List<String> topBQR; // Top BQR list
 
-    -- Step 5: Prepare the action description
-    ACTION_DESCRIPTION := 'Changed from "' || OLD_AD_GROUP_NAME || '" to "' || NEW_AD_GROUP_NAME || '"';
-
-    -- Step 6: Update the AD group for the BOR ID
-    BEGIN
-        UPDATE T_BOR_CUSTOMER_CALC
-        SET AD_LOB_ID = NEWAD_GROUP_IN,
-            AD_GRP_ART_LOB_NAME = NEW_AD_GROUP_NAME
-        WHERE CUSTOMER_REQUEST_SEQ = BORID_IN;
-
-        IF SQL%ROWCOUNT > 0 THEN
-            -- Step 7: Log the admin action
-            INSERT INTO T_ART_ADMIN_ACTION_LOG (
-                LOG_ID, BORID, ACTION_DATE, ACTION_DESCRIPTION, ACTION_TYPE, ADMIN_USER_ID
-            ) VALUES (
-                T_ART_ADMIN_ACTION_LOG_SEQ.NEXTVAL,
-                BORID_IN,
-                SYSDATE,
-                ACTION_DESCRIPTION,
-                'Record Transfer',
-                ADMIN_USERID_IN
-            );
-
-            RESULT_OUT := 'Success: AD group updated successfully.';
-        ELSE
-            RESULT_OUT := 'Error: Update failed, no rows affected.';
-        END IF;
-    EXCEPTION
-        WHEN OTHERS THEN
-            RESULT_OUT := 'Error: Failed to update the AD group.';
-            RETURN;
-    END;
-END UPDATE_BOR_AD_GROUPS;
-/
-
-
-
-
-
-In your case, when dealing with dropdowns, you would typically use `document.getElementById` (or another method, like `querySelector`) to access the dropdown and retrieve its selected value.
-
-Here’s how you can handle the dropdown in your provided code:
-
-### Access the Dropdown Value in JavaScript
-To get the selected value from a dropdown, use the following code:
-
-```javascript
-var selectedValue = document.getElementById('strAccessGroupLobSelected').value;
-console.log(selectedValue); // This will log the selected dropdown value
-```
-
-### Explanation of Changes:
-1. **HTML Element for Dropdown**:  
-   You already have a `<form:select>` element bound to `strAccessGroupLobSelected`. Ensure that the rendered HTML has an `id` attribute for the dropdown element.
-
-   ```html
-   <select id="strAccessGroupLobSelected" name="strAccessGroupLobSelected" class="formInput">
-       <option value="-1">Select an Option</option>
-       <option value="1">LOB 1</option>
-       <option value="2">LOB 2</option>
-       <!-- Other options -->
-   </select>
-   ```
-
-2. **JavaScript to Access Selected Value**:
-   Use the dropdown's `id` (`strAccessGroupLobSelected` in this case) to get the selected option's value.
-
-   ```javascript
-   var dropdown = document.getElementById('strAccessGroupLobSelected');
-   var selectedValue = dropdown.options[dropdown.selectedIndex].value;
-   alert("Selected value is: " + selectedValue);
-   ```
-
-### Handling Dropdown in Your Code:
-Integrate the above JavaScript snippet with your form submission or any event handler as needed. For example:
-
-```html
-<input type="button" value="Submit" onclick="handleDropdownSubmit()" />
-```
-
-And in the JavaScript function:
-
-```javascript
-function handleDropdownSubmit() {
-    var dropdown = document.getElementById('strAccessGroupLobSelected');
-    var selectedValue = dropdown.options[dropdown.selectedIndex].value;
-
-    if (selectedValue === "-1") {
-        alert("Please select a valid option.");
-        return false;
+    // Constructor
+    public EFMAARC(List<Map<String, Object>> df, int n, Map<String, Map<String, Map<String, Object>>> dict, List<String> topBQR) {
+        this.df = df;
+        this.n = n;
+        this.dict = dict;
+        this.topBQR = topBQR;
     }
 
-    // Proceed with the rest of the logic
-    alert("Selected LOB: " + selectedValue);
+    // Calculate distances
+    public List<Map<String, Object>> calcDistance() {
+        for (Map.Entry<String, Map<String, Object>> entry : dict.get("median_dict").entrySet()) {
+            String key = entry.getKey();
+            Map<String, Object> scores = entry.getValue();
+
+            for (String var : scores.keySet()) {
+                for (Map<String, Object> row : df) {
+                    if (row.containsKey(var + "_score")) {
+                        double score = (double) row.getOrDefault(var + "_score", 0.0);
+                        double medianScore = (double) scores.get(var);
+                        row.put(var + "_distance", score - medianScore);
+                    }
+                }
+            }
+        }
+        return df;
+    }
+
+    // Calculate variable deviation by model
+    public List<Map<String, Object>> calcVarDeviationByModel() {
+        for (Map<String, Object> row : df) {
+            String model = (String) row.getOrDefault("model", "");
+
+            // Model A and B: Nullify qualitative factor distances
+            if ("Model A".equals(model) || "Model B".equals(model)) {
+                for (String qualVar : getQualVars()) {
+                    row.put(qualVar + "_distance", null);
+                }
+            }
+
+            // Model-specific adjustments
+            Map<String, Object> coeffDict = dict.get("coeff_dict").get(model.toLowerCase(Locale.ROOT));
+            if (coeffDict != null) {
+                for (String finalVar : getFinalVars()) {
+                    if (row.containsKey(finalVar + "_distance")) {
+                        double coeff = (double) coeffDict.getOrDefault("modelA_coeff", 1.0);
+                        row.put(finalVar + "_distance", coeff * (double) row.get(finalVar + "_distance"));
+                    }
+                }
+
+                // Special handling for pd6_a_logodds_distance
+                if (row.containsKey("pd6_a_logodds_distance")) {
+                    double pd6Coeff = (double) coeffDict.getOrDefault("pd6_coeff", 1.0);
+                    row.put("pd6_a_logodds_distance", pd6Coeff * (double) row.get("pd6_a_logodds_distance"));
+                }
+            }
+        }
+        return df;
+    }
+
+    // Rank variables with ties (top or bottom)
+    public Map<String, List<String>> aarcRankWithTie(String direction) {
+        boolean isNegative = "negative".equalsIgnoreCase(direction);
+        List<String> importanceCols = getColImportance();
+
+        Map<String, List<String>> rankedReasons = new HashMap<>();
+        for (Map<String, Object> row : df) {
+            List<Map.Entry<String, Double>> entries = new ArrayList<>();
+
+            // Collect non-null distances
+            for (String col : importanceCols) {
+                if (row.containsKey(col)) {
+                    Double value = (Double) row.get(col);
+                    if (value != null) {
+                        entries.add(Map.entry(col, value));
+                    }
+                }
+            }
+
+            // Sort based on ascending/descending values
+            entries.sort((a, b) -> isNegative ? a.getValue().compareTo(b.getValue()) : b.getValue().compareTo(a.getValue()));
+
+            // Collect top N variables
+            List<String> topN = new ArrayList<>();
+            for (int i = 0; i < Math.min(n, entries.size()); i++) {
+                topN.add(entries.get(i).getKey().replace("_distance", ""));
+            }
+            rankedReasons.put(row.toString(), topN); // Use row identifier as key
+        }
+
+        return rankedReasons;
+    }
+
+    // Top reasons
+    public List<Map<String, Object>> topReason() {
+        Map<String, List<String>> bottomReasons = aarcRankWithTie("negative");
+        Map<String, List<String>> topReasons = aarcRankWithTie("positive");
+
+        for (Map<String, Object> row : df) {
+            String bqr = (String) row.getOrDefault("BQR", "");
+
+            for (int i = 1; i <= n; i++) {
+                String posCd = "aarc_pos_cd" + i;
+                String negCd = "aarc_neg_cd" + i;
+
+                row.put("efm_re_cd" + i, topBQR.contains(bqr) ? row.get(posCd) : row.get(negCd));
+            }
+        }
+
+        return df;
+    }
+
+    // Helper methods for variables
+    private List<String> getFinalVars() {
+        return Arrays.asList("ca_to_cl", "cash_to_ta", "chg_roa", "ebitda_to_intepitd", "sales_growth", "stp_to_ta", "ta_to_te", "totas");
+    }
+
+    private List<String> getQualVars() {
+        return Arrays.asList("statementquality", "historicaltrends", "managementstrength", "industryoutlook", "operationalrisk", "acquisitintegratrsk", "riskrelationship");
+    }
+
+    private List<String> getColImportance() {
+        return Arrays.asList("pd6_a_logodds_distance", "ebitda_to_intcpltd_distance", "totas_distance", "cash_to_ta_distance", "sales_growth_distance", "historicaltrends_distance",
+                "chg_roa_distance", "statementquality_distance", "td_to_te_distance", "stp_to_ta_distance", "managementstrength_distance",
+                "ca_to_cl_distance", "industryoutlook_distance", "operationalrisk_distance", "acquisitintegratrsk_distance", "riskrelationship_distance");
+    }
 }
 ```
 
-### Summary:
-- Use `document.getElementById('dropdownId')` to reference the dropdown.
-- Retrieve the selected value using `dropdown.options[dropdown.selectedIndex].value`.
-- Validate or process the selected value in your JavaScript logic. 
-
-Let me know if you need further clarification!
-
-
-
-
-
-
-
-
-
-CREATE TABLE ART.T_BQR_SUB_REASON_CALC (
-    CALC_CODE NUMBER(3) NOT NULL,
-    PARENT_REASON_CODE NUMBER(10) NOT NULL,
-    SUB_REASON_CODE NUMBER(10) NOT NULL,
-    DISPLAY_ORDER NUMBER(3),
-    CREATE_DATE DATE NOT NULL,
-    CREATED_BY VARCHAR2(50) NOT NULL,
-    UPDATED_BY VARCHAR2(50),
-    LAST_UPDATE_DATE DATE,
-    IS_DELETED VARCHAR2(1) NOT NULL,
-    PARENT_LOOKUP_CODE VARCHAR2(50),
-    SUB_LOOKUP_CODE VARCHAR2(50),
-    CONSTRAINT T_BQR_SUB_REASON_CALC_UQ UNIQUE (CALC_CODE, PARENT_REASON_CODE, SUB_REASON_CODE)
-);
-
-
-
-CREATE TABLE ART.T_BQR_SUB_REASON_CALC (
-    CALC_CODE NOT NULL NUMBER(3),
-    PARENT_REASON_CODE NOT NULL NUMBER(10),
-    SUB_REASON_CODE NOT NULL NUMBER(10),
-    DISPLAY_ORDER NUMBER(3),
-    CREATE_DATE NOT NULL DATE,
-    CREATED_BY NOT NULL VARCHAR2(50),
-    UPDATED_BY VARCHAR2(50),
-    LAST_UPDATE_DATE DATE,
-    IS_DELETED NOT NULL VARCHAR2(1),
-    PARENT_LOOKUP_CODE VARCHAR2(50),
-    SUB_LOOKUP_CODE VARCHAR2(50),
-    UNIQUE (CALC_CODE, PARENT_REASON_CODE, SUB_REASON_CODE)
-);
-
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-
-<!-- Form to bind with BqrSearchForm -->
-<form:form modelAttribute="bqrSearchForm" method="POST">
-    <label for="accessGroupLobSelect">Access Group LOB:</label>
-    
-    <!-- Bind dropdown to 'accessGroupLobSelect' property in the form -->
-    <form:select path="accessGroupLobSelect" cssClass="formInput">
-        <form:option value="-1">Select an Option</form:option>
-
-        <!-- Loop through the 'accessGroupLobs' list and create options -->
-        <c:forEach var="lob" items="${bqrSearchForm.accessGroupLobs}">
-            <!-- Set the value as LOB ID and display the LOB Name -->
-            <form:option value="${lob.adLobId}">${lob.adGrpArtLobName}</form:option>
-        </c:forEach>
-    </form:select>
-
-    <!-- Submit button -->
-    <input type="submit" value="Submit" />
-</form:form>
-
-
-
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-
-<!-- Form to bind with BqrSearchForm -->
-<form:form modelAttribute="bqrSearchForm" method="POST">
-    <label for="accessGroupLobSelect">Access Group LOB:</label>
-    <form:select path="accessGrouplobSelect" cssClass="formInput">
-        <form:option value="-1">Select an Option</form:option>
-
-        <!-- Loop through the 'accessGroupLobs' list and create options -->
-        <c:forEach var="lob" items="${bqrSearchForm.accessGroupLobs}">
-            <!-- Set the value as LOB ID and display the LOB Name -->
-            <form:option value="${lob.adLobId}">${lob.adGrpArtLobName}</form:option>
-        </c:forEach>
-    </form:select>
-
-    <!-- Submit button -->
-    <input type="submit" value="Submit" />
-</form:form>
-
-
-Based on your idea of a credit recommendation engine and the information provided from the webpage on **AI in Risk Assessment for Loans**, here's an **analysis**, along with the **business context**, **problem statement**, and **solution** using your data and AI-based techniques.
-
 ---
 
-### **Business Context:**
+### Key Notes:
+1. **DataFrame Simulation**:
+   - The `df` is a list of maps (`List<Map<String, Object>>`) to simulate rows of data.
 
-In the modern banking and lending landscape, **accurate and efficient risk assessment** is paramount for making profitable loan decisions. Traditional risk assessment models, which rely on basic statistical methods and human judgment, have limitations in dealing with the **vast and complex data sets** available today. As the financial industry increasingly adopts **data-driven technologies**, **artificial intelligence (AI)** is proving to be a game-changer. AI allows financial institutions like **Wells Fargo** to leverage a wide array of **customer data**—ranging from **historical financial trends** to **real-time economic indicators**—to create more nuanced and precise risk assessments, **minimize defaults**, and **optimize loan portfolios**.
+2. **Dictionary Structure**:
+   - Nested maps (`Map<String, Map<String, Object>>`) are used to mimic the nested structure of the Python dictionary.
 
-For Wells Fargo, implementing an AI-powered credit recommendation engine can help **optimize loan decisions** across **new customers** and **existing clients** by predicting financial trends, analyzing risk factors, and making **automated recommendations**. The goal is to increase **profitability**, enhance **operational efficiency**, and reduce **credit risk exposure**.
+3. **Key Functions**:
+   - `calcDistance()` and `calcVarDeviationByModel()` compute column values based on conditions.
+   - `aarcRankWithTie()` sorts and selects top/bottom variables.
 
-### **Problem Statement:**
+4. **`topReason` Logic**:
+   - Combines positive and negative reasons into the final output.
 
-Wells Fargo seeks to implement an advanced **AI-driven credit recommendation engine** that can evaluate and predict **customer financial health** across both **new and existing clients**. The goal is to minimize default risks, maximize the **accuracy** of lending decisions, and increase profitability by improving the **quality of the loan portfolio**. 
+5. **Helper Methods**:
+   - `getFinalVars()`, `getQualVars()`, and `getColImportance()` list static variables for reuse.
 
-The traditional statistical methods and expert judgment-based approaches are not sufficient to handle the growing complexity and volume of customer data, nor do they effectively capture the nonlinear relationships that determine whether a loan applicant will default. AI-based risk assessment can fill this gap by analyzing **hundreds of data points**, identifying **complex patterns**, and continuously **learning** from new data, ensuring that the bank’s lending decisions are based on **precision rather than guesswork**.
+6. **`main` Method**:
+   Add the previously provided **main method** to test and run the program.
 
-Key objectives of the credit recommendation engine include:
-1. **Accurate Risk Assessment**: Predict financial trends, detect early signs of **default risk**, and evaluate **loan eligibility** based on advanced **AI** models.
-2. **Operational Efficiency**: Automate decision-making processes to reduce manual intervention and speed up loan approval times.
-3. **Profitability Optimization**: Reduce **loss rates**, optimize **loan portfolios**, and increase revenue by lending to the right customers at the right terms.
-4. **Customer Segmentation**: Classify customers into **low, medium, and high-risk** categories for personalized loan terms and targeted marketing.
-5. **Regulatory Compliance**: Ensure all loan approvals are compliant with regulatory guidelines and internal risk management policies.
-
-### **Solution Using AI:**
-
-The AI-powered credit recommendation engine will leverage the following AI-based techniques for risk modeling and financial trend analysis:
-
-#### **1. Enhanced Data Utilization:**
-- Traditional methods rely on a narrow set of variables (e.g., income, assets, credit score). The AI engine can analyze **hundreds of variables**—including **social behavior**, **spending patterns**, **economic indicators**, and **market trends**—to create a more complete picture of customer financial health.
-- It also uses **historical transaction data** and **real-time updates** to capture customer trends that may have been overlooked by traditional models.
-
-#### **2. Nonlinear Relationship Detection:**
-- Unlike traditional models, AI doesn’t assume simple linear relationships between risk variables. AI models use **advanced machine learning algorithms** (e.g., **neural networks**, **random forests**, or **gradient boosting**) to identify complex, nonlinear relationships between variables that are often missed by linear statistical models.
-  
-#### **3. Real-time Learning and Adaptability:**
-- AI models continuously learn from new data. As customer behaviors evolve or market conditions change (e.g., shifts in economic indicators, interest rates, or personal financial behavior), the engine adjusts its predictions in real time, keeping the risk assessment process up-to-date and accurate.
-
-#### **4. Predictive Analytics:**
-- By analyzing past behavior, **financial trends**, and **macro-economic indicators**, the engine predicts future financial health, providing early warnings for potential loan defaults.
-- **Customer Financial Trend Analysis**: By assessing the financial trajectory of **new customers** and **existing clients**, AI can predict whether the customer will likely remain **financially stable**, become **volatile**, or trend towards **default**.
-
-#### **5. Automated Risk Segmentation:**
-- Using **AI models**, the engine classifies customers into **high**, **medium**, or **low-risk** categories based on financial behaviors, income, credit history, and other relevant factors.
-- **High-risk customers** may face **higher interest rates** or **lower loan amounts**. **Low-risk customers** can be approved for **larger loans** at more **competitive rates**.
-
-#### **6. Optimized Loan Approval:**
-- By factoring in **Loan-to-Income (LTI)** and **Loan-to-Value (LTV)** ratios, the engine determines whether the loan amount is appropriate for the customer’s financial profile. If the customer is requesting a loan higher than their income can support, the system can **automatically decline** the request or recommend **alternative loan structures**.
-- **Loan Recommendations**: AI will not only assess eligibility but also provide recommendations for **customized loan terms** based on the customer’s risk profile.
-
-#### **7. Forecasting Outcomes and Reducing Defaults:**
-- AI can predict the likelihood of loan defaults by analyzing **patterns** in historical loan data, borrower profiles, and broader economic trends.
-- For example, if a customer has a history of late payments or is showing **volatile financial behavior**, the AI model will flag this and suggest **loan rejections**, or **alternatives** like securing the loan with collateral or offering lower amounts.
-
-#### **8. Increased Profitability:**
-- Research has shown that AI-based models can **reduce loss rates by 20%**, **cut loan loss provisions by 30%**, and **increase revenue by 2%** (S&P Global Market Intelligence).
-- AI-driven risk assessment ensures that Wells Fargo can lend to a wider audience with reduced default risk, driving higher profitability through **increased lending volumes** and **lower risk exposure**.
-
----
-
-### **Key Outcomes:**
-
-1. **Automated and Data-Driven Lending**: The AI-powered engine will allow Wells Fargo to automate its loan approval process, reducing manual oversight while enhancing accuracy and efficiency.
-2. **Enhanced Customer Insights**: With a more nuanced understanding of each customer’s financial trends and risk profile, Wells Fargo can offer **personalized loan terms** and targeted financial products.
-3. **Lower Default Rates**: By utilizing AI to assess a broader array of financial data, the engine will help **minimize defaults**, ensuring that only financially healthy customers are approved for loans.
-4. **Higher Revenue and Profitability**: By optimizing lending decisions, Wells Fargo can increase its **loan portfolio quality**, reduce **non-performing loans**, and boost profitability.
-5. **Improved Risk Management**: With **AI-powered forecasting and early-warning signals**, the bank can proactively manage credit risks and respond to changing financial environments more swiftly and effectively.
-
----
-
-### **Conclusion:**
-
-The implementation of an **AI-driven credit recommendation engine** will allow Wells Fargo to **transform its lending processes**, ensuring that risk assessments are more accurate, data-driven, and adaptable to market changes. By leveraging the power of AI, Wells Fargo can make smarter, faster decisions, reduce defaults, and enhance profitability while continuing to serve its customers with personalized, fair loan offerings.
+Let me know if further clarifications or refinements are needed!
