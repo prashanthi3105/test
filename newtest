@@ -1,3 +1,28 @@
+
+import pandas as pd
+import os
+
+# Path to the Parquet file
+parquet_file_path = "path_to_your_parquet_file.parquet"
+
+# Read the Parquet file
+df = pd.read_parquet(parquet_file_path)
+
+# Get the user's desktop path
+desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+
+# Save as a TXT file
+txt_file_path = os.path.join(desktop_path, "output.txt")
+df.to_csv(txt_file_path, index=False, sep="\t")  # Tab-separated for readability
+print(f"File saved as TXT at: {txt_file_path}")
+
+# Save as a JSON file
+json_file_path = os.path.join(desktop_path, "output.json")
+df.to_json(json_file_path, orient="records", lines=True)  # JSON lines format
+print(f"File saved as JSON at: {json_file_path}")
+
+
+
 here
 
 
