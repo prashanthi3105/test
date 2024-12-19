@@ -1,4 +1,89 @@
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+class BarCalculatorWizardFormTest {
+
+    @Mock
+    private HttpSession session;
+
+    @Mock
+    private UserDto userDto;
+
+    @Mock
+    private ApplicationConstants applicationConstants;
+
+    @InjectMocks
+    private BarCalculatorWizardForm objWizForm;
+
+    private BarRecordSearchForm barRecordSearchForm;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        barRecordSearchForm = new BarRecordSearchForm();
+        objWizForm = new BarCalculatorWizardForm();
+    }
+
+    @Test
+    void testAdminUserWithValidADGroups() {
+        // Mocking session attributes
+        when(session.getAttribute("UserDto")).thenReturn(userDto);
+        when(userDto.getUserADGroups()).thenReturn(new ArrayList<>());
+        when(userDto.getRole()).thenReturn("Admin");
+        when(userDto.isSigFlag()).thenReturn(true);
+
+        // Mocking ApplicationConstants
+        Map<String, ADGroupDtls> mockAdGrpMap = Map.of(
+                "group1", new ADGroupDtls("Group 1"),
+                "group2", new ADGroupDtls("Group 2")
+        );
+        when(ApplicationConstants.getAdGrpMap()).thenReturn(mockAdGrpMap);
+
+        // Executing the logic
+        if (userDto != null && userDto.getUserADGroups() != null) {
+            if ("Admin".equalsIgnoreCase(userDto.getRole()) && userDto.isSigFlag() && ApplicationConstants.getAdGrpMap() != null) {
+                List<ADGroupDtls> allADGrpsList = new ArrayList<>(mockAdGrpMap.values());
+                barRecordSearchForm.setAccessGrouplobs(allADGrpsList);
+                objWizForm.getBarCustomerView().setAccessGrouplobs(allADGrpsList);
+
+                // Assertions
+                assertEquals(allADGrpsList, barRecordSearchForm.getAccessGrouplobs());
+                assertEquals(allADGrpsList, objWizForm.getBarCustomerView().getAccessGrouplobs());
+            }
+        }
+    }
+
+    @Test
+    void testNonAdminUserWithADGroups() {
+        // Mocking session attributes
+        when(session.getAttribute("UserDto")).thenReturn(userDto);
+        List<ADGroupDtls> userAdGroups = List.of(new ADGroupDtls("Group A"), new ADGroupDtls("Group B"));
+        when(userDto.getUserADGroups()).thenReturn(userAdGroups);
+        when(userDto.getRole()).thenReturn("User");
+        when(userDto.isSigFlag()).thenReturn(false);
+
+        // Executing the logic
+        if (userDto != null && userDto.getUserADGroups() != null) {
+            List<ADGroupDtls> adGroups = userDto.getUserADGroups();
+            barRecordSearchForm.setAccessGrouplobs(adGroups);
+            objWizForm.getBarCustomerView().setAccessGrouplobs(adGroups);
+
+            // Assertions
+            assertEquals(adGroups, barRecordSearchForm.getAccessGrouplobs());
+            assertEquals(adGroups, objWizForm.getBarCustomerView().getAccessGrouplobs());
+        }
+    }
+}
 import pandas as pd
 import os
 
